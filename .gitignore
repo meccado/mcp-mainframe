@@ -30,11 +30,15 @@ wheels/
 !.env.example
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
 *~
+
+# VS Code (except MCP configuration)
+.vscode/*
+!.vscode/mcp*.json
+!.vscode/README.md
 
 # OS
 .DS_Store

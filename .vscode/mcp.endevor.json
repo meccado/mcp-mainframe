@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vscode/main/extensions/mcp/schemas/mcp.json",
+  "servers": {
+    "mainframe-cobol": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["${workspaceFolder}/src/mcp_server/server.py"],
+      "env": {
+        "BACKEND": "ENDEVOR",
+        "ENDEVOR_BASE_URL": "https://endevor.yourcompany.com/api/v1",
+        "ENDEVOR_USER": "YOURUSERID",
+        "ENDEVOR_PASSWORD": "${env:ENDEVOR_PASSWORD}",
+        "ENDEVOR_STAGE": "PROD",
+        "LOG_LEVEL": "INFO",
+        "MAX_CONNECTIONS": "10",
+        "CONNECTION_TIMEOUT": "30",
+        "FREQUENT_PROGRAMS": "PAYROLL,BILLING,CUSTUPD",
+        "FREQUENT_COPYBOOKS": "CUST-REC,ORDER-REC,COMMON1"
+      }
+    }
+  }
+}
