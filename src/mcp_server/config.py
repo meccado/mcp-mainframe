@@ -3,6 +3,12 @@ Configuration management for MCP COBOL Server.
 
 Handles environment variable parsing, validation, and provides
 a type-safe configuration object.
+
+Supports four backends:
+- SSH: Direct SSH connection to mainframe USS filesystem
+- Endevor: CA Endevor API web services
+- z/OSMF: IBM z/OS Management Facility REST API
+- Zowe: Open Mainframe Project API ML
 """
 
 import os
@@ -17,14 +23,16 @@ class Config:
     """
     Immutable configuration for MCP COBOL Server.
     
-    Supports two backends:
+    Supports four backends:
     - SSH: Direct SSH connection to mainframe USS filesystem
     - Endevor: CA Endevor API web services
+    - z/OSMF: IBM z/OS Management Facility REST API
+    - Zowe: Open Mainframe Project API ML
     
     All required fields must be provided via environment variables.
     No defaults for sensitive connection parameters.
     """
-    # Backend selection (SSH or Endevor)
+    # Backend selection (SSH, ENDEVOR, ZOSMF, or ZOWE)
     backend: str = "SSH"
     
     # SSH-specific parameters (required if backend == "SSH")
@@ -32,13 +40,25 @@ class Config:
     username: Optional[str] = None
     key_file: Optional[str] = None
     
-    # Endevor-specific parameters (required if backend == "Endevor")
+    # Endevor-specific parameters (required if backend == "ENDEVOR")
     endevor_base_url: Optional[str] = None
     endevor_user: Optional[str] = None
     endevor_password: Optional[str] = None
-    endevor_stage: str = "PROD"  # Default Endevor stage
+    endevor_stage: str = "PROD"
     
-    # Dataset names (required for SSH, optional for Endevor)
+    # z/OSMF-specific parameters (required if backend == "ZOSMF")
+    zosmf_base_url: Optional[str] = None
+    zosmf_user: Optional[str] = None
+    zosmf_password: Optional[str] = None
+    zosmf_verify_cert: bool = True
+    
+    # Zowe-specific parameters (required if backend == "ZOWE")
+    zowe_base_url: Optional[str] = None
+    zowe_user: Optional[str] = None
+    zowe_password: Optional[str] = None
+    zowe_verify_cert: bool = True
+    
+    # Dataset names (required for SSH, optional for others)
     cobol_source_dsn: Optional[str] = None
     copybook_dsn: Optional[str] = None
 
@@ -51,7 +71,7 @@ class Config:
     def __post_init__(self):
         """Validate configuration after initialization."""
         # Validate backend selection
-        valid_backends = {"SSH", "ENDEVOR"}
+        valid_backends = {"SSH", "ENDEVOR", "ZOSMF", "ZOWE"}
         if self.backend.upper() not in valid_backends:
             raise ValueError(
                 f"Invalid BACKEND: {self.backend}. Must be one of: {', '.join(valid_backends)}"
@@ -81,17 +101,17 @@ class Config:
                 )
 
             # Validate SSH key permissions (Unix-like systems)
-            if os.name != "nt":  # Skip on Windows
+            if os.name != "nt":
                 try:
                     mode = key_path.stat().st_mode & 0o777
-                    if mode & 0o077:  # Any permission beyond owner read/write
+                    if mode & 0o077:
                         print(
                             f"WARNING: SSH key file {self.key_file} has permissions "
                             f"{oct(mode)}. Recommended: 0o600",
                             file=sys.stderr
                         )
                 except (OSError, IOError):
-                    pass  # Can't check permissions, continue
+                    pass
         
         # Validate Endevor-specific parameters
         elif backend_upper == "ENDEVOR":
@@ -101,7 +121,32 @@ class Config:
                 raise ValueError("ENDEVOR_USER is required when using Endevor backend")
             if not self.endevor_password:
                 raise ValueError("ENDEVOR_PASSWORD is required when using Endevor backend")
-            # Endevor stage is optional with default "PROD"
+        
+        # Validate z/OSMF-specific parameters
+        elif backend_upper == "ZOSMF":
+            if not self.zosmf_base_url:
+                raise ValueError("ZOSMF_BASE_URL is required when using z/OSMF backend")
+            if not self.zosmf_user:
+                raise ValueError("ZOSMF_USER is required when using z/OSMF backend")
+            if not self.zosmf_password:
+                raise ValueError("ZOSMF_PASSWORD is required when using z/OSMF backend")
+            if not self.cobol_source_dsn:
+                raise ValueError("COBOL_SRC_DSN is required when using z/OSMF backend")
+            if not self.copybook_dsn:
+                raise ValueError("COPYBOOK_DSN is required when using z/OSMF backend")
+        
+        # Validate Zowe-specific parameters
+        elif backend_upper == "ZOWE":
+            if not self.zowe_base_url:
+                raise ValueError("ZOWE_BASE_URL is required when using Zowe backend")
+            if not self.zowe_user:
+                raise ValueError("ZOWE_USER is required when using Zowe backend")
+            if not self.zowe_password:
+                raise ValueError("ZOWE_PASSWORD is required when using Zowe backend")
+            if not self.cobol_source_dsn:
+                raise ValueError("COBOL_SRC_DSN is required when using Zowe backend")
+            if not self.copybook_dsn:
+                raise ValueError("COPYBOOK_DSN is required when using Zowe backend")
 
         # Validate log level
         valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR"}
@@ -186,13 +231,30 @@ def get_optional_env_int(var_name: str, default: int) -> int:
         return default
 
 
+def get_optional_env_bool(var_name: str, default: bool) -> bool:
+    """
+    Get an optional boolean environment variable.
+    
+    Args:
+        var_name: Name of the environment variable
+        default: Default value if not set
+        
+    Returns:
+        The boolean value or default
+    """
+    value = os.environ.get(var_name, str(default)).strip().lower()
+    return value in ("true", "1", "yes", "on")
+
+
 def load_config() -> Config:
     """
     Load configuration from environment variables.
     
-    Supports two backends:
+    Supports four backends:
     - SSH: Requires MF_HOST, MF_USER, MF_KEYFILE, COBOL_SRC_DSN, COPYBOOK_DSN
     - Endevor: Requires ENDEVOR_BASE_URL, ENDEVOR_USER, ENDEVOR_PASSWORD
+    - z/OSMF: Requires ZOSMF_BASE_URL, ZOSMF_USER, ZOSMF_PASSWORD, COBOL_SRC_DSN, COPYBOOK_DSN
+    - Zowe: Requires ZOWE_BASE_URL, ZOWE_USER, ZOWE_PASSWORD, COBOL_SRC_DSN, COPYBOOK_DSN
     
     Validates all required variables and creates an immutable Config object.
     Exits with clear error messages if required variables are missing.
@@ -210,7 +272,6 @@ def load_config() -> Config:
         backend = get_optional_env("BACKEND", "SSH").upper()
         
         if backend == "SSH":
-            # SSH backend - all SSH parameters required
             config = Config(
                 backend=backend,
                 host=get_required_env("MF_HOST"),
@@ -230,7 +291,6 @@ def load_config() -> Config:
             print(f"INFO: Copybook Dataset: {config.copybook_dsn}", file=sys.stderr)
             
         elif backend == "ENDEVOR":
-            # Endevor backend - all Endevor parameters required
             config = Config(
                 backend=backend,
                 endevor_base_url=get_required_env("ENDEVOR_BASE_URL"),
@@ -248,9 +308,49 @@ def load_config() -> Config:
             print(f"INFO: Endevor URL: {config.endevor_base_url}", file=sys.stderr)
             print(f"INFO: Endevor User: {config.endevor_user}", file=sys.stderr)
             print(f"INFO: Endevor Stage: {config.endevor_stage}", file=sys.stderr)
+        
+        elif backend == "ZOSMF":
+            config = Config(
+                backend=backend,
+                zosmf_base_url=get_required_env("ZOSMF_BASE_URL"),
+                zosmf_user=get_required_env("ZOSMF_USER"),
+                zosmf_password=get_required_env("ZOSMF_PASSWORD"),
+                zosmf_verify_cert=get_optional_env_bool("ZOSMF_VERIFY_CERT", True),
+                cobol_source_dsn=get_required_env("COBOL_SRC_DSN"),
+                copybook_dsn=get_required_env("COPYBOOK_DSN"),
+                log_level=get_optional_env("LOG_LEVEL", "INFO"),
+                max_connections=get_optional_env_int("MAX_CONNECTIONS", 10),
+                connection_timeout=get_optional_env_int("CONNECTION_TIMEOUT", 30),
+            )
             
+            print(f"INFO: Configuration loaded successfully (z/OSMF backend)", file=sys.stderr)
+            print(f"INFO: z/OSMF URL: {config.zosmf_base_url}", file=sys.stderr)
+            print(f"INFO: z/OSMF User: {config.zosmf_user}", file=sys.stderr)
+            print(f"INFO: COBOL Dataset: {config.cobol_source_dsn}", file=sys.stderr)
+            print(f"INFO: Copybook Dataset: {config.copybook_dsn}", file=sys.stderr)
+        
+        elif backend == "ZOWE":
+            config = Config(
+                backend=backend,
+                zowe_base_url=get_required_env("ZOWE_BASE_URL"),
+                zowe_user=get_required_env("ZOWE_USER"),
+                zowe_password=get_required_env("ZOWE_PASSWORD"),
+                zowe_verify_cert=get_optional_env_bool("ZOWE_VERIFY_CERT", True),
+                cobol_source_dsn=get_required_env("COBOL_SRC_DSN"),
+                copybook_dsn=get_required_env("COPYBOOK_DSN"),
+                log_level=get_optional_env("LOG_LEVEL", "INFO"),
+                max_connections=get_optional_env_int("MAX_CONNECTIONS", 10),
+                connection_timeout=get_optional_env_int("CONNECTION_TIMEOUT", 30),
+            )
+            
+            print(f"INFO: Configuration loaded successfully (Zowe backend)", file=sys.stderr)
+            print(f"INFO: Zowe URL: {config.zowe_base_url}", file=sys.stderr)
+            print(f"INFO: Zowe User: {config.zowe_user}", file=sys.stderr)
+            print(f"INFO: COBOL Dataset: {config.cobol_source_dsn}", file=sys.stderr)
+            print(f"INFO: Copybook Dataset: {config.copybook_dsn}", file=sys.stderr)
+        
         else:
-            print(f"ERROR: Invalid BACKEND: {backend}. Must be SSH or ENDEVOR", file=sys.stderr)
+            print(f"ERROR: Invalid BACKEND: {backend}. Must be SSH, ENDEVOR, ZOSMF, or ZOWE", file=sys.stderr)
             sys.exit(1)
         
         print(f"INFO: Log Level: {config.log_level}", file=sys.stderr)

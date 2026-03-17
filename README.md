@@ -4,25 +4,29 @@ Retrieve COBOL source code and copybooks from z/OS mainframe datasets via the Mo
 
 ## Overview
 
-This MCP server provides AI assistants (via Continue.dev) with direct access to COBOL programs and copybooks stored on IBM z/OS mainframes. It supports two backends:
+This MCP server provides AI assistants with direct access to COBOL programs and copybooks stored on IBM z/OS mainframes. It supports **four backends** for maximum flexibility:
 
 - **SSH**: Direct SSH connection to mainframe USS filesystem
-- **Endevor**: CA Endevor API web services (more robust, recommended if available)
+- **Endevor**: CA Endevor API web services
+- **z/OSMF**: IBM z/OS Management Facility REST API (recommended)
+- **Zowe**: Open Mainframe Project API ML (recommended for modern DevOps)
 
-Both backends provide secure, read-only source retrieval with configurable connection pooling and comprehensive error handling.
+All backends provide secure, read-only source retrieval with comprehensive error handling.
 
 ## Features
 
-- **Dual Backend Support**: Choose between SSH or Endevor based on your environment
+- **Quad Backend Support**: SSH, Endevor, z/OSMF, or Zowe - choose what fits your environment
 - **`get_cobol_source`**: Retrieve COBOL program source by name
 - **`get_copybook`**: Retrieve copybook (data structure) source by name
 - **MCP Resources**: Expose frequently accessed programs and copybooks
-- **VS Code Native Integration**: Works with built-in MCP support (no extensions required)
-- **SSH Connection Pooling**: Efficient connection reuse (configurable limit: 5-10)
-- **Endevor HTTP Client**: Reusable HTTP client with authentication
+- **VS Code Native Integration**: Works with built-in MCP support
+- **Connection Pooling**: Efficient connection reuse (SSH backend)
+- **REST API Clients**: Modern HTTP clients for Endevor, z/OSMF, and Zowe
 - **Secure Configuration**: All credentials via environment variables
 - **Error Handling**: User-friendly error messages, no credential exposure
 - **Configurable Logging**: DEBUG, INFO, WARNING, ERROR levels
+
+See [BACKENDS.md](BACKENDS.md) for detailed backend comparison and selection guide.
 
 ## Prerequisites
 
@@ -34,6 +38,14 @@ Both backends provide secure, read-only source retrieval with configurable conne
   - CA Endevor Software Change Manager installed
   - Endevor web services API access
   - Endevor user credentials
+- **For z/OSMF backend** (Recommended):
+  - IBM z/OSMF installed on z/OS (standard on modern z/OS)
+  - z/OSMF REST API access
+  - z/OSMF user credentials with dataset read permissions
+- **For Zowe backend** (Recommended for Modern DevOps):
+  - Zowe API ML installed on mainframe
+  - Zowe REST API access
+  - Zowe user credentials
 - **VS Code** with **GitHub Copilot** extension (for AI integration)
 - **VS Code MCP support**: Built-in (VS Code 1.95+ or Insiders)
 

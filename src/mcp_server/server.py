@@ -67,6 +67,8 @@ async def run_server(config: Config, logger: logging.Logger) -> None:
     # Initialize backend-specific clients
     pool = None
     endevor_client = None
+    zosmf_client = None
+    zowe_client = None
     
     try:
         if backend == "SSH":
@@ -74,17 +76,29 @@ async def run_server(config: Config, logger: logging.Logger) -> None:
             pool = SSHConnectionPool(config)
             ssh_client = MainframeSSH(pool, config)
             logger.info("SSH connection pool initialized")
-
+            
         elif backend == "ENDEVOR":
             # Endevor backend - initialize HTTP client
             endevor_client = EndevorClient(config)
             logger.info("Endevor client initialized")
-
+        
+        elif backend == "ZOSMF":
+            # z/OSMF backend - initialize REST client
+            zosmf_client = ZosmfClient(config)
+            logger.info("z/OSMF client initialized")
+        
+        elif backend == "ZOWE":
+            # Zowe backend - initialize API ML client
+            zowe_client = ZoweClient(config)
+            logger.info("Zowe client initialized")
+        
         # Create tool handlers based on backend
         tool_handlers = create_tool_handlers(
             config=config,
             pool=pool,
-            endevor=endevor_client
+            endevor=endevor_client,
+            zosmf=zosmf_client,
+            zowe=zowe_client
         )
         
         # Create resource manager
@@ -263,6 +277,14 @@ async def run_server(config: Config, logger: logging.Logger) -> None:
         if endevor_client:
             await endevor_client.close()
             logger.info("Endevor client closed")
+        
+        if zosmf_client:
+            await zosmf_client.close()
+            logger.info("z/OSMF client closed")
+        
+        if zowe_client:
+            await zowe_client.close()
+            logger.info("Zowe client closed")
         
         logger.info("Server shutdown complete")
 

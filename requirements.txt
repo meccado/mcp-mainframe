@@ -7,7 +7,7 @@ mcp>=1.0.0
 # SSH Library (required for SSH backend)
 paramiko>=3.0.0
 
-# HTTP Library (required for Endevor backend)
+# HTTP Library (required for Endevor, z/OSMF, and Zowe backends)
 httpx>=0.27.0
 
 # Testing (optional - not included in implementation tasks)
