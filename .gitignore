@@ -52,3 +52,9 @@ htmlcov/
 
 # Logs
 *.log
+
+# Test/Example Code (not for commit)
+code/
+*.cbl
+*.jcl
+!code/README.md
