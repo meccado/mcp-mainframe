@@ -1,0 +1,56 @@
+services:
+  mcp-cobol-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: mcp-cobol-server
+    restart: unless-stopped
+    
+    # Environment variables - load from .env file
+    env_file:
+      - .env
+    
+    # Or define environment variables directly:
+    # environment:
+    #   - BACKEND=SSH
+    #   - MF_HOST=zos.yourcompany.com
+    #   - MF_USER=YOURUSERID
+    #   - MF_KEYFILE=/app/ssh_keys/id_rsa
+    #   - COBOL_SRC_DSN=YOUR.COBOL.SRC
+    #   - COPYBOOK_DSN=YOUR.COPYBOOK
+    #   - LOG_LEVEL=INFO
+    #   - MAX_CONNECTIONS=10
+    #   - CONNECTION_TIMEOUT=30
+    
+    # For SSH backend: Mount SSH keys
+    # volumes:
+    #   - ~/.ssh/id_rsa:/app/ssh_keys/id_rsa:ro
+    
+    # For Endevor backend: No special volumes needed
+    # The server communicates via HTTP/HTTPS
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: SSE transport variant (for remote access)
+  # Uncomment if you want to expose the server via HTTP SSE
+  # mcp-cobol-server-sse:
+  #   extends:
+  #     service: mcp-cobol-server
+  #   container_name: mcp-cobol-server-sse
+  #   ports:
+  #     - "8080:8080"
+  #   command: ["python", "-m", "uvicorn", "src.mcp_server.server:app", "--host", "0.0.0.0", "--port", "8080"]

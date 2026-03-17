@@ -1,0 +1,79 @@
+about: Ask questions about MCP COBOL Server
+title: "[Q&A]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Before You Ask
+        - Check the [README](README.md) for documentation
+        - Search existing discussions to see if your question has been answered
+        - For bugs, please create an [issue](https://github.com/meccado/mcp-mainframe/issues/new?template=bug_report.yml) instead
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      description: What is your question about?
+      options:
+        - Installation & Setup
+        - Configuration (SSH Backend)
+        - Configuration (Endevor Backend)
+        - Docker Deployment
+        - VS Code Integration
+        - MCP Tools (get_cobol_source, get_copybook)
+        - MCP Resources
+        - Troubleshooting
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: Please provide as much detail as possible
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version are you using? (Run `git describe --tags` or check README)
+    validations:
+      required: false
+
+  - type: dropdown
+    id: backend
+    attributes:
+      label: Backend
+      description: Which backend are you using?
+      options:
+        - SSH
+        - Endevor
+        - Both
+        - Not sure yet
+    validations:
+      required: false
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment
+      description: How are you running the server?
+      options:
+        - Local (Python)
+        - Docker
+        - Not sure yet
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: Please copy and paste any relevant error messages or logs
+      render: shell
+    validations:
+      required: false

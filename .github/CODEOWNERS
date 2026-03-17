@@ -1,0 +1,26 @@
+# Code Owners for MCP COBOL Server
+# https://help.github.com/articles/about-codeowners/
+
+# Default owners for the entire repository
+* @meccado
+
+# MCP Server code
+src/mcp_server/ @meccado
+
+# Docker configuration
+Dockerfile @meccado
+docker-compose.yml @meccado
+.dockerignore @meccado
+
+# GitHub configuration
+.github/ @meccado
+
+# Documentation
+README.md @meccado
+docs/ @meccado
+
+# Specifications
+specs/ @meccado
+
+# Python dependencies
+requirements.txt @meccado

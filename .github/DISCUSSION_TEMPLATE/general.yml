@@ -1,0 +1,36 @@
+about: General discussions about MCP COBOL Server
+title: "[Discussion]: "
+labels: ["discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Welcome!
+        This is the place for general discussions about MCP COBOL Server.
+        - Share your use cases
+        - Discuss best practices
+        - Propose ideas
+        - Community discussions
+
+  - type: textarea
+    id: discussion
+    attributes:
+      label: Start the discussion
+      description: What would you like to discuss?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: What type of discussion is this?
+      options:
+        - General
+        - Use Cases
+        - Best Practices
+        - Ideas
+        - Show and Tell
+        - Community
+    validations:
+      required: true

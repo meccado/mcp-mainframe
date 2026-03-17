@@ -1,0 +1,59 @@
+---
+name: 📝 Documentation Improvement
+description: Suggest improvements or report issues with documentation
+title: "[Docs]: "
+labels: ["documentation", "triage"]
+assignees:
+  - meccado
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation!
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type of Improvement
+      description: What type of documentation improvement is this?
+      options:
+        - Fix typo or grammar
+        - Add missing information
+        - Clarify existing content
+        - Add examples
+        - Reorganize structure
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: file
+    attributes:
+      label: Affected File(s)
+      description: Which file(s) does this affect? (e.g., README.md, docs/setup.md)
+      placeholder: README.md
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Improvement
+      description: What changes would you like to see?
+    validations:
+      required: true
+
+  - type: textarea
+    id: content
+    attributes:
+      label: Suggested Content
+      description: If you have specific wording or examples, please share them here
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: willing-to-help
+    attributes:
+      label: Would you like to contribute?
+      options:
+        - label: I would like to create a pull request for this improvement

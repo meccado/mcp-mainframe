@@ -1,0 +1,15 @@
+# MCP COBOL Server Dependencies
+# Python 3.10+
+
+# MCP Protocol
+mcp>=1.0.0
+
+# SSH Library (required for SSH backend)
+paramiko>=3.0.0
+
+# HTTP Library (required for Endevor backend)
+httpx>=0.27.0
+
+# Testing (optional - not included in implementation tasks)
+# pytest>=7.0.0
+# pytest-asyncio>=0.21.0
